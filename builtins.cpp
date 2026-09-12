@@ -62,7 +62,7 @@ namespace mysh{
         return std::nullopt;
     }
 
-    bool isBuiltin(std::string command){
+    bool isBuiltin(const std::string command){
         if (command == "exit" || command == "pwd" || command == "cd" || command == "which"){
             return true;
         }

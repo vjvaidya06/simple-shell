@@ -1,10 +1,8 @@
-CC = gcc
-CFLAGS = -Wall -g
+CC = g++
+CFLAGS = -std=c++23 -Wall -g
 
 all: mysh
 
-mysh: mysh.c commands.c wildcard.c
-	$(CC) $(CFLAGS) -o mysh mysh.c commands.c commands.h wildcard.c wildcard.h
+mysh: mysh.cpp builtins.cpp builtins.hpp
+	$(CC) $(CFLAGS) -o mysh mysh.cpp builtins.cpp
 
-clean:
-	rm -f mysh

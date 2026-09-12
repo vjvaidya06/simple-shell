@@ -6,3 +6,6 @@ all: mysh
 mysh: mysh.cpp builtins.cpp builtins.hpp
 	$(CC) $(CFLAGS) -o mysh mysh.cpp builtins.cpp
 
+clean:
+	rm -f mysh
+

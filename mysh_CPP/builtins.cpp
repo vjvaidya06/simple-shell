@@ -56,6 +56,7 @@ namespace mysh{
                 if (ec){
                     std::println("which threw error: {}", ec.message());
                 }
+                //RVO should theoretically handle this for me
                 return path / executable;
             }
         }

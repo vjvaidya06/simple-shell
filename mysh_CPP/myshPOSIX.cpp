@@ -8,7 +8,8 @@ namespace mysh{
     void posixMain(){
         Tokenizer tokenizer{};
         //Multiple "s or ;s in one token breaks it
-        std::string line = "ls -alh  > \"test space.txt\" # this is a comment\n ls; \"hmm\" ";
+        // std::string line = "ls -alh  > \"test space.txt\" # this is a comment\n ls; \"hmm\" ";
+        std::string line = "ls -alh  > \"test space.txt\" # this is a comment\nls ; \"hmm\" ";
         tokenizer.tokenize(line);
         auto tokens = tokenizer.getTokens();
         std::println("tokens");

@@ -40,9 +40,11 @@ namespace mysh{
     //     // std::queue<std::size_t> ends{};
     // }
 
+
     //End character parsing
     //When an end character is found
     //TODO: backslash escaping
+    //TODO: Redirection
     void Tokenizer::tokenize(std::string line){
         auto result = line | std::views::split(' ');
         for (auto&& word : result){
@@ -77,7 +79,6 @@ namespace mysh{
                 tokens.back() += " ";
             }
             //This needs to include all possible end characters
-            // auto imp_tokens = word 
             auto imp_tokens = token 
                 | std::views::enumerate
                 | std::views::filter([](const auto& pair){
@@ -91,27 +92,23 @@ namespace mysh{
                     tokens.back() += token.substr(last, index-last);
                     state = (state == TokenizerStates::None) ? TokenizerStates::Quote : TokenizerStates::None;
                 }
-                // else if (character == ';'){
                 else{
                     //substr is really (start, len) and not (start, end)
                     //Damn you Bjarne
                     tokens.back() += token.substr(last, index-last);
-                    //TODO: else push_back(nullptr)
                     if (state == TokenizerStates::Quote){
                         // tokens.back() += ';';
                         tokens.back() += character;
                     }
                     //Non commented end character is the only character in the word
                     //In this case tokens.back() is an empty string 
-                    //Add the end character to that empty string instead of pushing back a new token
-                    // else if (token.size() == 1){
-                        // tokens.pop_back();
-                        // tokens.back() += character;
-                    // }
+                    //Destroy that extra empty string
                     else{
                         if (token.size() == 1){
                             tokens.pop_back();
                         }
+                        //Check if the second last token is < or >
+                        //Expand wildcard, select the first term in the expansion
                         if (tokens.size() > 0){
                             expandWildcard(&tokens);
                         }
@@ -121,14 +118,6 @@ namespace mysh{
                     if (index != word.size() - 1){
                         tokens.push_back("");
                     }
-                    // if (state == TokenizerStates::None){
-                        // tokens.push_back(nullptr);
-                        //Ah damn it
-                        //Use an empty string in place of nullptr
-                        //Or just note the token in my queue?
-                        // tokens.push_back("");
-                        // ends.emplace(tokens.size());
-                    // }
                 }
                 last = index+1;
             }

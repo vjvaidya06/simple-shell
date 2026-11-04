@@ -1,6 +1,7 @@
 #include <print>
 #include <ranges>
 #include "tokenizer.hpp"
+#include "wildcardExpansion.hpp"
 
 /*
 We want to keep tokenizing till we find an "end" character. Then we execute.
@@ -22,7 +23,7 @@ In bash semicolons are still considered valid end characters within a wildcard e
 given *.txt;ls, *.txt will be expanded
  */
 namespace{
-    inline bool is_end_char(char c){
+    inline bool isEndChar(char c){
         return c == ';' || c =='\n' || c == '|' || c == '\0';
     }
 }
@@ -81,7 +82,7 @@ namespace mysh{
                 | std::views::enumerate
                 | std::views::filter([](const auto& pair){
                         // return std::get<1>(pair) == '"' || std::get<1>(pair) == ';';
-                        return std::get<1>(pair) == '"' || is_end_char(std::get<1>(pair));
+                        return std::get<1>(pair) == '"' || isEndChar(std::get<1>(pair));
                         });
             std::size_t last = 0;
             for (auto&& [index, character]: imp_tokens){
@@ -103,11 +104,17 @@ namespace mysh{
                     //Non commented end character is the only character in the word
                     //In this case tokens.back() is an empty string 
                     //Add the end character to that empty string instead of pushing back a new token
-                    else if (token.size() == 1){
+                    // else if (token.size() == 1){
                         // tokens.pop_back();
-                        tokens.back() += character;
-                    }
+                        // tokens.back() += character;
+                    // }
                     else{
+                        if (token.size() == 1){
+                            tokens.pop_back();
+                        }
+                        if (tokens.size() > 0){
+                            expandWildcard(&tokens);
+                        }
                         tokens.push_back(std::string(1, character));
                     }
                     //Do we need this?
@@ -163,7 +170,7 @@ namespace mysh{
         for (std::size_t i = end_pos; i < tokens.size(); i++){
             //Note that the command vector does not own the string
             command.push_back(tokens[i].c_str());
-            if (tokens[i].size() == 1 && is_end_char(tokens[i][0])){
+            if (tokens[i].size() == 1 && isEndChar(tokens[i][0])){
                 command.push_back(nullptr);
                 // return command;
                 // I have to do this, or RVO breaks
@@ -176,7 +183,7 @@ namespace mysh{
     }
 
     void Tokenizer::eraseCommand(){
-        if (tokens[end_pos].size() != 1 || !is_end_char(tokens[end_pos][0])){
+        if (tokens[end_pos].size() != 1 || !isEndChar(tokens[end_pos][0])){
             std::println("Called erase without a full command");
             return;
         }

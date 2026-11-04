@@ -46,8 +46,6 @@ namespace mysh {
             //Then I don't even need optional
             void tokenize(std::string line);
 
-            std::vector<std::string> expandWildcard(std::string pattern);
-            
             //If end isn't nullopt
             //Erase the first end[0]-1 elements
             //Change tokens[end[0]] to substr(end[1]+1)

@@ -4,7 +4,7 @@
 #include <variant>
 #include <vector>
 #include <string>
-#include <optional>
+#include <expected>
 #include <filesystem>
 
 namespace mysh {
@@ -12,6 +12,10 @@ namespace mysh {
         Comment,
         Quote,
         None
+    };
+    enum class CommandResult{
+        Malformed,
+        Incomplete
     };
     struct NoRedirect{};
     struct PipeRedirect{};
@@ -28,6 +32,9 @@ namespace mysh {
             RedirectionState stdinRedirect = NoRedirect{};
             RedirectionState stdoutRedirect = NoRedirect{};
 
+            void tokenizeWord(std::string_view token);
+            bool handleRedirect(std::size_t currentSize);
+
         public:
             Tokenizer() = default;
             void tokenize(std::string line);
@@ -36,6 +43,7 @@ namespace mysh {
                 return tokens;
             };
             std::optional<std::vector<const char*>> getCommand();
+            // std::expected<std::vector<const char*>, CommandResult> getCommand();
             void eraseCommand();
     };
 }

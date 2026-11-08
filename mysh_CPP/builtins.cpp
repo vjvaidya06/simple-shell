@@ -1,8 +1,9 @@
 #include "builtins.hpp"
 #include <cstdlib>
+#include <expected>
 #include <filesystem>
 #include <system_error>
-#include <print>
+// #include <print>
 #include <optional>
 #include <array>
 
@@ -10,16 +11,20 @@ namespace mysh{
     void exit(int status_code){
         std::exit(status_code);
     }
-    std::filesystem::path pwd(){
+    //TODO: Make these std::expected
+    //std::filesystem::path pwd(){
+    std::expected<std::filesystem::path, std::error_code> pwd(){
+        using Result = std::expected<std::filesystem::path, std::error_code>;
         std::error_code ec{};
         std::filesystem::path cwd = std::filesystem::current_path(ec);
         if (ec){
-            std::println("Threw error: {}", ec.message());
+            // std::println("Threw error: {}", ec.message());
+            return Result(std::unexpect, ec);
         }
-        return cwd;
+        return Result(cwd);
     }
 
-    std::error_code cd(const std::optional<std::filesystem::path> destination){
+    std::optional<std::error_code> cd(const std::optional<std::filesystem::path> destination){
         std::error_code ec{};
         if (!destination.has_value()){
             //No value, go to home
@@ -33,37 +38,40 @@ namespace mysh{
         else{
             std::filesystem::current_path(*destination, ec);
         }
-        return ec;
+        if (ec){
+            return std::optional<std::error_code>(ec);
+        }
+        return std::nullopt;
         
     }
 
-    std::optional<std::filesystem::path> which(const std::filesystem::path executable){
+    // We'll have to rework this to make it cross platform later
+    std::expected<std::filesystem::path, std::string> which(const std::filesystem::path executable){
+        // using WhichError = std::expected<std::filesystem::path, std::error_code>;
+        using WhichError = std::expected<std::filesystem::path, std::string>;
         std::error_code ec{};
         if (executable.has_parent_path()){
             if (std::filesystem::exists(executable, ec)){
                 if (ec){
-                    std::println("which threw error: {}", ec.message());
+                    return WhichError(std::unexpect, ec.message());
                 }
-                return executable;
+                return WhichError(executable);
             }
-            // return std::nullopt;
+            return WhichError(std::unexpect, "Executable not found");
         }
-        // char paths[3][15] = {"/usr/local/bin", "/usr/bin", "/bin"};
-        // std::array paths{"/usr/local/bin", "/usr/bin", "/bin"};
         std::array<std::filesystem::path, 3> paths{"/usr/local/bin", "/usr/bin", "/bin"};
         for (const auto& path : paths){
             if (std::filesystem::exists(path / executable, ec)){
                 if (ec){
-                    std::println("which threw error: {}", ec.message());
+                    return WhichError(std::unexpect, ec.message());
                 }
-                //RVO should theoretically handle this for me
-                return path / executable;
+                return WhichError(path / executable);
             }
         }
-        return std::nullopt;
+        return WhichError(std::unexpect, "Executable not found");
     }
 
-    bool isBuiltin(const std::string command){
+    bool isBuiltin(std::string_view command){
         if (command == "exit" || command == "pwd" || command == "cd" || command == "which"){
             return true;
         }

@@ -6,25 +6,6 @@
 #include "tokenizer.hpp"
 #include "wildcardExpansion.hpp"
 
-/*
-We want to keep tokenizing till we find an "end" character. Then we execute.
-With the power of canonical mode we just go line by line
-Do I want to support a multiline command with quotes?
-
-If I do, we need to encounter an end character, and the state needs to be None
-
-End characters:
-\n at the end of a token
-;
-|
-\0 in the old shell, but probably not here
-
-Also need to consider wildcards
-If something contains a wildcard, expand it and skip forward
-Ignore end characters?
-In bash semicolons are still considered valid end characters within a wildcard expansion
-given *.txt;ls, *.txt will be expanded
- */
 namespace{
     inline bool isEndChar(char c){
         return c == ';' || c =='\n' || c == '|' || c == '\0';
@@ -32,35 +13,9 @@ namespace{
 }
 
 namespace mysh{
-    //Use the default
-    // Tokenizer::Tokenizer(){
-    //     state = TokenizerStates::None;
-    //     std::vector<std::string> tokens{};
-    //     std::size_t end_pos{0};
-    //     std::vector<const char*> command{};
-    //     //Make the assumption that end characters are always at the end of a token
-    //     //Might need a pair here to keep track of the end char
-    //     // std::queue<std::size_t> ends{};
-    // }
 
     //File redirection handler
     //getCommand needs to call this
-    /*bool Tokenizer::handleRedirect(std::size_t currentSize){
-        if (currentSize > 1){
-            const auto& curtoken = tokens[currentSize - 2];
-            if (curtoken.size() == 1){
-                if (curtoken[0] == '>' && std::holds_alternative<NoRedirect>(stdoutRedirect)){
-                    stdoutRedirect = FileRedirect{std::filesystem::path(tokens[currentSize-2])};
-                    return true;
-                }
-                else if (curtoken[0] == '<' && std::holds_alternative<NoRedirect>(stdinRedirect)){
-                    stdinRedirect = FileRedirect{std::filesystem::path(tokens[currentSize-2])};
-                    return true;
-                }
-            }
-        }
-        return false;
-    }*/
     bool Tokenizer::handleRedirect(std::size_t idx){
         if (idx < tokens.size() - 1){
             const auto& curtoken = tokens[idx];
@@ -183,26 +138,10 @@ namespace mysh{
             tokenizeWord(token);
         }
     }
-    //If there's an end character, create a char**
-    //I also want to call erase after, how should that be managed?
-    //I don't want fork/exec here
-    //Option 1: decouple get command and erase
-    //I'll have to call both. Just wrap it in a function in main
-    //Option 2: let main handle it by passing things back
-    //I don't want to do that one
-    //THIS CANNOT OUTLIVE THE CLASS
-    //AS SOON AS YOU CALL ERASE IT BECOMES A DANGLING POINTER
-    //Must call erase after each call to this
-    //I must also return the end character
 
-    //Try something different.
-    //Walk through until you find an end character.
-    //If one can't be found:
-    //  1. Keep track of where we stopped
-    //  2. Wipe the vector
     std::optional<std::vector<const char*>> Tokenizer::getCommand(){
     // std::expected<std::vector<const char*>, CommandResult> Tokenizer::getCommand(){
-        using CommandError = std::expected<std::vector<const char*>, CommandResult>;
+        // using CommandError = std::expected<std::vector<const char*>, CommandResult>;
         if (tokens.empty()){
             return std::nullopt;
             // return CommandError(std::unexpect, CommandResult::Incomplete);

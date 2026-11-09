@@ -14,6 +14,7 @@ namespace unistdHelper {
 
         public:
             explicit PosixFD(int fd) noexcept;
+            explicit PosixFD() noexcept;
             // [[nodiscard]]
             // static std::expected<PosixFD, std::error_code> open(const std::filesystem::path& path, int flags);
             [[nodiscard]]

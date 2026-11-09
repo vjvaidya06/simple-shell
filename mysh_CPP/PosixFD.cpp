@@ -13,6 +13,7 @@ namespace unistdHelper {
     //If close is set to false, the fd will not be closed 
     //Example usage would be when wrapping 0, 1, or 2
     PosixFD::PosixFD(int fd) noexcept : m_fd{fd}{}
+    PosixFD::PosixFD() noexcept : m_fd{-1}{}
 
     void PosixFD::destroy(){
         if (m_fd >= 0){
